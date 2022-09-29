@@ -15,7 +15,9 @@ public class PlayerMovement : MonoBehaviour
     
     public Transform feetPos;
     public LayerMask whatIsGround;
-    
+ 
+    private enum MovementState { idle, running, jumping, falling }
+
     public float speed;
     public float jumpForce;
     private float moveInput;
@@ -39,7 +41,7 @@ public class PlayerMovement : MonoBehaviour
     private void Update()
     {
         HandleVerticalMovement();
-        UpdateAnimationUpdate();
+        UpdateAnimationState();
     }
 
     //A function for handling the players horizontal movement.
@@ -75,26 +77,40 @@ public class PlayerMovement : MonoBehaviour
     }
 
     //A function for updating the animations of the main character.
-    private void UpdateAnimationUpdate()
+    private void UpdateAnimationState()
     {
+        MovementState state;
+
         //Flipping the character on the X axis.
-        if (moveInput >= 0)
+        if (moveInput > 0)
         {
             spriteRenderer.flipX = false;
         }
-        else
+        else if (moveInput < 0)
         {
             spriteRenderer.flipX = true;
         }
-        //Setting the running/idle animation.
+        //Setting the running/idle/jumping/falling animation.
         if (moveInput <= .2f && moveInput >= -.2f)
         {
-            animator.SetBool("running", false);
+            state = MovementState.idle;
         }
         else
         {
-            animator.SetBool("running", true);
+            state = MovementState.running;
         }
+
+        if (rb.velocity.y > .1f)
+        {
+            state = MovementState.jumping;
+        }
+
+        if (rb.velocity.y < -.1f)
+        {
+            state = MovementState.falling;
+        }
+
+        animator.SetInteger("state", (int)state);
     }    
 
 }
