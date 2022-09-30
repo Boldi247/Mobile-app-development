@@ -16,7 +16,7 @@ public class PlayerMovement : MonoBehaviour
     public Transform feetPos;
     public LayerMask whatIsGround;
  
-    private enum MovementState { idle, running, jumping, falling }
+    private enum MovementState { idle, running, jumping, falling, doublejump }
 
     public float speed;
     public float jumpForce;
@@ -25,6 +25,8 @@ public class PlayerMovement : MonoBehaviour
     public float checkRadius;
     public float jumpTime;
     private bool jumpedOnce;
+    private bool canDoubleJump;
+    private bool doubleJumpedOnce;
 
     private void Start()
     {
@@ -49,7 +51,6 @@ public class PlayerMovement : MonoBehaviour
     private void HandleHorizontalMovement()
     {
         moveInput = joystick.Horizontal;
-        Debug.Log(moveInput);
         if (moveInput <= .2f && moveInput >= -.2f)
         {
             rb.velocity = new Vector2(0f, rb.velocity.y);
@@ -74,6 +75,16 @@ public class PlayerMovement : MonoBehaviour
         }
 
         if (joystick.Vertical < .5f) jumpedOnce = false;
+        if (isGrounded == true) doubleJumpedOnce = false;
+    }
+
+    public void DoubleJump()
+    {
+        if (isGrounded == false && doubleJumpedOnce == false)
+        {
+            rb.velocity = Vector2.up * jumpForce;
+            doubleJumpedOnce = true;
+        }
     }
 
     //A function for updating the animations of the main character.
@@ -108,6 +119,11 @@ public class PlayerMovement : MonoBehaviour
         if (rb.velocity.y < -.1f)
         {
             state = MovementState.falling;
+        }
+
+        if (doubleJumpedOnce == true && rb.velocity.y > .1f)
+        {
+            state = MovementState.doublejump;
         }
 
         animator.SetInteger("state", (int)state);
